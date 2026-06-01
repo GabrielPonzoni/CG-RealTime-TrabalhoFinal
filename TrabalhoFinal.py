@@ -1,38 +1,33 @@
-# Exemplo 5 - Skybox com Cubemap
-# Disciplina de Computação Gráfica em Tempo Real
+# =============================================================================
+# Trabalho Final - Environment Mapping & Skybox
+# Disciplina: Computação Gráfica em Tempo Real
 #
-# CONCEITOS INTRODUZIDOS NESTE EXEMPLO:
-# - GL_TEXTURE_CUBE_MAP: tipo especial de textura formado por 6 faces
-#   (direita, esquerda, topo, base, frente, trás), cada uma sendo uma
-#   imagem quadrada independente.
-# - Coordenadas de textura 3D (vec3): em vez de UV (2D), o cubemap é
-#   amostrado com um vetor de direção 3D — o próprio vértice do cubo
-#   serve como direção, sem precisar de UVs explícitas.
-# - Skybox trick: o cubo é desenhado sem translação (apenas rotação da
-#   câmera é aplicada), e com o depth test configurado para GL_LEQUAL,
-#   garantindo que o skybox sempre fique "atrás" de tudo.
-# - Remoção da translação da view matrix: zeramos a coluna de translação
-#   da matriz de visualização antes de passá-la ao shader do skybox, para
-#   que o cubo acompanhe a câmera sem se afastar dela.
+# DESCRIÇÃO:
+# Este script implementa a técnica de Environment Mapping utilizando um Cubemap.
+# O ambiente virtual é renderizado através de um Skybox estático, que serve 
+# como base de iluminação e reflexão para superfícies paramétricas na cena.
 #
-# TEXTURAS NECESSÁRIAS (6 arquivos, todos quadrados e do mesmo tamanho):
-#   right.png, left.png, top.png, bottom.png, front.png, back.png
+# CONCEITOS TÉCNICOS APLICADOS:
+# - GL_TEXTURE_CUBE_MAP: Mapeamento de textura em 6 faces independentes.
+# - Amostragem 3D (vec3): Utilização dos próprios vértices do cubo como 
+#   vetores de direção para amostragem da textura, dispensando coordenadas UV.
+# - Skybox Trick: Renderização do cubo de fundo forçando o depth test para 
+#   GL_LEQUAL, garantindo que o cenário seja sempre renderizado atrás da geometria.
+# - Matriz de Visualização: Remoção da translação da view matrix no shader 
+#   do skybox, permitindo que a câmera rotacione sem "escapar" do cenário.
 #
-#   Onde encontrar:
-#   - LearnOpenGL skybox clássico:
-#     https://learnopengl.com/img/textures/skybox.zip
-#   - OpenGameArt: https://opengameart.org  (busque "skybox")
-#   - Humus: http://www.humus.name/index.php?page=Textures
-#
-#   Coloque os 6 arquivos na mesma pasta do script (ou ajuste PASTA_SKYBOX).
+# TEXTURAS NECESSÁRIAS:
+# - 6 texturas quadradas (right.jpg, left.jpg, top.jpg, bottom.jpg, front.jpg, back.jpg)
+# - Diretório padrão: "CG-RealTime-TrabalhoFinal\\skybox"
 #
 # CONTROLES:
-#   W/A/S/D - movimenta a câmera (o skybox acompanha — é o comportamento correto)
-#   Mouse   - rotaciona a câmera (yaw + pitch)
-#   ESC     - fecha a janela
+#   W/A/S/D - Movimentação da câmera
+#   Mouse   - Rotação da câmera (FPS Look)
+#   ESC     - Encerrar aplicação
 #
 # DEPENDÊNCIAS:
 #   pip install PyOpenGL PyOpenGL_accelerate glfw Pillow numpy
+# =============================================================================
 
 import glfw
 from OpenGL.GL import *
@@ -70,7 +65,7 @@ Textura_cubo        = None   # textura simples para o cubo de exemplo na cena
 Tempo_entre_frames = 0.0
 
 # Pasta onde estão os 6 arquivos de textura do skybox
-PASTA_SKYBOX    = "CG-RealTime-TrabalhoFinal\\skybox"
+PASTA_SKYBOX    = os.path.join(os.path.dirname(os.path.abspath(__file__)), "skybox")
 
 # -----------------------------
 # Parâmetros da câmera virtual
