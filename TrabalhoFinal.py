@@ -55,11 +55,9 @@ Shader_reflexao     = None      # Objeto refletor (Environment Mapping)
 # VAOs e Contagem de Índices
 Vao_skybox          = None
 Objetos_cenario     = {}        # Dicionário para guardar (VAO, num_indices) de cada forma
-Vao_cubo            = None
 
 # Texturas
 Textura_cubemap     = None
-Textura_cubo        = None   # textura simples para o cubo de exemplo na cena
 
 
 Tempo_entre_frames = 0.0
