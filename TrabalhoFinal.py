@@ -82,49 +82,49 @@ primeiro_mouse = True
 # -----------------------------------------------------------------------------
 
 def redimensionaCallback(window, w, h):
-    global WIDTH, HEIGHT
-    WIDTH, HEIGHT = w, h
+	global WIDTH, HEIGHT
+	WIDTH, HEIGHT = w, h
 
 def mouse_callback(window, xpos, ypos):
-    global lastX, lastY, primeiro_mouse, Cam_yaw, Cam_pitch
+	global lastX, lastY, primeiro_mouse, Cam_yaw, Cam_pitch
 
-    if primeiro_mouse:
-        lastX, lastY   = xpos, ypos
-        primeiro_mouse = False
+	if primeiro_mouse:
+		lastX, lastY   = xpos, ypos
+		primeiro_mouse = False
 
-    xoffset = (xpos - lastX) * 0.1
-    yoffset = (lastY - ypos) * 0.1
-    lastX, lastY = xpos, ypos
+	xoffset = (xpos - lastX) * 0.1
+	yoffset = (lastY - ypos) * 0.1
+	lastX, lastY = xpos, ypos
 
-    Cam_yaw   += xoffset
-    Cam_pitch  = max(-89.0, min(89.0, Cam_pitch + yoffset))
+	Cam_yaw   += xoffset
+	Cam_pitch  = max(-89.0, min(89.0, Cam_pitch + yoffset))
 
 def key_callback(window, key, scancode, action, mode):
-    return
+	return
 
 # -----------------------------
 # Inicialização do OpenGL
 # -----------------------------
 
 def inicializaOpenGL():
-    global Window
+	global Window
 
-    glfw.init()
-    Window = glfw.create_window(WIDTH, HEIGHT, "Exemplo 5 - Skybox com Cubemap", None, None)
-    if not Window:
-        glfw.terminate()
-        exit()
+	glfw.init()
+	Window = glfw.create_window(WIDTH, HEIGHT, "Exemplo 5 - Skybox com Cubemap", None, None)
+	if not Window:
+		glfw.terminate()
+		exit()
 
-    glfw.set_window_size_callback(Window, redimensionaCallback)
-    glfw.make_context_current(Window)
-    glfw.set_input_mode(Window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-    glfw.set_cursor_pos_callback(Window, mouse_callback)
-    glfw.set_key_callback(Window, key_callback)
+	glfw.set_window_size_callback(Window, redimensionaCallback)
+	glfw.make_context_current(Window)
+	glfw.set_input_mode(Window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+	glfw.set_cursor_pos_callback(Window, mouse_callback)
+	glfw.set_key_callback(Window, key_callback)
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
-    print("Placa de vídeo:", glGetString(GL_RENDERER))
-    print("Versão do OpenGL:", glGetString(GL_VERSION))
-    
-    
+	print("Placa de vídeo:", glGetString(GL_RENDERER))
+	print("Versão do OpenGL:", glGetString(GL_VERSION))
+  
 
 # -----------------------------------------------
 # Geometria do skybox
@@ -139,174 +139,174 @@ def inicializaOpenGL():
 # é invertida em relação ao cubo normal (face culling invertido).
 
 def inicializaSkybox():
-    global Vao_skybox
+	global Vao_skybox
 
-    Vao_skybox = glGenVertexArrays(1)
-    glBindVertexArray(Vao_skybox)
+	Vao_skybox = glGenVertexArrays(1)
+	glBindVertexArray(Vao_skybox)
 
-    # Apenas posições (x, y, z) — sem UV, sem face_id
-    # A posição do vértice É a direção de amostragem do cubemap
-    vertices = np.array([
-        # face DIREITA  (+X)
-         1.0, -1.0, -1.0,
-         1.0, -1.0,  1.0,
-         1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-         1.0,  1.0, -1.0,
-         1.0, -1.0, -1.0,
-        # face ESQUERDA (-X)
-        -1.0, -1.0,  1.0,
-        -1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-        -1.0, -1.0,  1.0,
-        # face TOPO     (+Y)
-        -1.0,  1.0, -1.0,
-         1.0,  1.0, -1.0,
-         1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        -1.0,  1.0, -1.0,
-        # face BASE     (-Y)
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-         1.0, -1.0, -1.0,
-         1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-         1.0, -1.0,  1.0,
-        # face FRENTE   (+Z)
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-         1.0, -1.0,  1.0,
-        -1.0, -1.0,  1.0,
-        # face TRÁS     (-Z)
-        -1.0,  1.0, -1.0,
-         1.0,  1.0, -1.0,
-         1.0, -1.0, -1.0,
-         1.0, -1.0, -1.0,
-        -1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-    ], dtype=np.float32)
+	# Apenas posições (x, y, z) — sem UV, sem face_id
+	# A posição do vértice É a direção de amostragem do cubemap
+	vertices = np.array([
+		# face DIREITA  (+X)
+		 1.0, -1.0, -1.0,
+		 1.0, -1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		 1.0,  1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		# face ESQUERDA (-X)
+		-1.0, -1.0,  1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		-1.0,  1.0,  1.0,
+		-1.0, -1.0,  1.0,
+		# face TOPO     (+Y)
+		-1.0,  1.0, -1.0,
+		 1.0,  1.0, -1.0,
+		 1.0,  1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		-1.0,  1.0, -1.0,
+		# face BASE     (-Y)
+		-1.0, -1.0, -1.0,
+		-1.0, -1.0,  1.0,
+		 1.0, -1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		-1.0, -1.0,  1.0,
+		 1.0, -1.0,  1.0,
+		# face FRENTE   (+Z)
+		-1.0, -1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		 1.0, -1.0,  1.0,
+		-1.0, -1.0,  1.0,
+		# face TRÁS     (-Z)
+		-1.0,  1.0, -1.0,
+		 1.0,  1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+	], dtype=np.float32)
 
-    vbo = glGenBuffers(1)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+	vbo = glGenBuffers(1)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo)
+	glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
-    # Apenas atributo 0: posição (x, y, z)
-    glEnableVertexAttribArray(0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * 4, None)
+	# Apenas atributo 0: posição (x, y, z)
+	glEnableVertexAttribArray(0)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * 4, ctypes.c_void_p(0))
 
 # -----------------------------------------------
 # Geração Paramétrica Unificada (Esfera, Torus, Cone)
 # -----------------------------------------------
 
 def inicializaSuperficie(tipo='esfera', resolucao_u=30, resolucao_v=30):
-    vertices = []
-    indices = []
-    
-    passo_u = 1.0 / resolucao_u
-    passo_v = 1.0 / resolucao_v
-    largura = resolucao_v + 1
+	vertices = []
+	indices = []
+	
+	passo_u = 1.0 / resolucao_u
+	passo_v = 1.0 / resolucao_v
+	largura = resolucao_v + 1
 
-    # GERAÇÃO DOS VÉRTICES (Sem textura, apenas Posição e Normal)
-    for i in range(resolucao_u + 1):
-        u = i * passo_u
-        for j in range(resolucao_v + 1):
-            v = j * passo_v
+	# GERAÇÃO DOS VÉRTICES (Sem textura, apenas Posição e Normal)
+	for i in range(resolucao_u + 1):
+		u = i * passo_u
+		for j in range(resolucao_v + 1):
+			v = j * passo_v
 
-            # --- BLOCO MATEMÁTICO ---
-            if tipo == 'esfera':
-                raio = 1.0
-                phi = u * math.pi
-                theta = v * 2.0 * math.pi
-                
-                x = raio * math.sin(phi) * math.cos(theta)
-                y = raio * math.cos(phi)
-                z = raio * math.sin(phi) * math.sin(theta)
-                
-                # Normal de uma esfera centrada na origem é a própria posição normalizada
-                nx, ny, nz = x / raio, y / raio, z / raio
+			# --- BLOCO MATEMÁTICO ---
+			if tipo == 'esfera':
+				raio = 1.0
+				phi = u * math.pi
+				theta = v * 2.0 * math.pi
+				
+				x = raio * math.sin(phi) * math.cos(theta)
+				y = raio * math.cos(phi)
+				z = raio * math.sin(phi) * math.sin(theta)
+				
+				# Normal de uma esfera centrada na origem é a própria posição normalizada
+				nx, ny, nz = x / raio, y / raio, z / raio
 
-            elif tipo == 'torus':
-                R_maior = 1.0
-                r_menor = 0.3
-                theta = u * 2.0 * math.pi
-                phi = v * 2.0 * math.pi
-                
-                x = (R_maior + r_menor * math.cos(theta)) * math.cos(phi)
-                y = (R_maior + r_menor * math.cos(theta)) * math.sin(phi)
-                z = r_menor * math.sin(theta)
-                
-                # Normal analítica do Torus
-                nx = math.cos(theta) * math.cos(phi)
-                ny = math.cos(theta) * math.sin(phi)
-                nz = math.sin(theta)
+			elif tipo == 'torus':
+				R_maior = 1.0
+				r_menor = 0.3
+				theta = u * 2.0 * math.pi
+				phi = v * 2.0 * math.pi
+				
+				x = (R_maior + r_menor * math.cos(theta)) * math.cos(phi)
+				y = (R_maior + r_menor * math.cos(theta)) * math.sin(phi)
+				z = r_menor * math.sin(theta)
+				
+				# Normal analítica do Torus
+				nx = math.cos(theta) * math.cos(phi)
+				ny = math.cos(theta) * math.sin(phi)
+				nz = math.sin(theta)
 
-            elif tipo == 'cone':
-                altura = 2.0
-                raio = 1.0
-                # u vai do topo (0) até a base (1)
-                y = (altura / 2.0) - (u * altura)
-                raio_atual = u * raio
-                theta = v * 2.0 * math.pi
-                
-                x = raio_atual * math.cos(theta)
-                z = raio_atual * math.sin(theta)
-                
-                # Normal analítica do Cone
-                nx = altura * math.cos(theta)
-                ny = raio
-                nz = altura * math.sin(theta)
-                norma = math.sqrt(nx*nx + ny*ny + nz*nz)
-                nx, ny, nz = nx/norma, ny/norma, nz/norma
+			elif tipo == 'cone':
+				altura = 2.0
+				raio = 1.0
+				# u vai do topo (0) até a base (1)
+				y = (altura / 2.0) - (u * altura)
+				raio_atual = u * raio
+				theta = v * 2.0 * math.pi
+				
+				x = raio_atual * math.cos(theta)
+				z = raio_atual * math.sin(theta)
+				
+				# Normal analítica do Cone
+				nx = altura * math.cos(theta)
+				ny = raio
+				nz = altura * math.sin(theta)
+				norma = math.sqrt(nx*nx + ny*ny + nz*nz)
+				nx, ny, nz = nx/norma, ny/norma, nz/norma
 
-            # Adiciona: x, y, z, nx, ny, nz (6 floats por vértice)
-            vertices.extend([x, y, z, nx, ny, nz])
+			# Adiciona: x, y, z, nx, ny, nz (6 floats por vértice)
+			vertices.extend([x, y, z, nx, ny, nz])
 
-    # GERAÇÃO DOS ÍNDICES
-    for i in range(resolucao_u):
-        for j in range(resolucao_v):
-            sup_esq = i * largura + j
-            sup_dir = sup_esq + 1
-            inf_esq = (i + 1) * largura + j
-            inf_dir = inf_esq + 1
-            
-            # Triângulos no sentido anti-horário
-            indices.extend([sup_esq, inf_esq, sup_dir])
-            indices.extend([sup_dir, inf_esq, inf_dir])
+	# GERAÇÃO DOS ÍNDICES
+	for i in range(resolucao_u):
+		for j in range(resolucao_v):
+			sup_esq = i * largura + j
+			sup_dir = sup_esq + 1
+			inf_esq = (i + 1) * largura + j
+			inf_dir = inf_esq + 1
+			
+			# Triângulos no sentido anti-horário
+			indices.extend([sup_esq, inf_esq, sup_dir])
+			indices.extend([sup_dir, inf_esq, inf_dir])
 
-    # CONFIGURAÇÃO DOS BUFFERS
-    vertices_data = np.array(vertices, dtype=np.float32)
-    indices_data = np.array(indices, dtype=np.uint32)
+	# CONFIGURAÇÃO DOS BUFFERS
+	vertices_data = np.array(vertices, dtype=np.float32)
+	indices_data = np.array(indices, dtype=np.uint32)
 
-    vao = glGenVertexArrays(1)
-    vbo = glGenBuffers(1)
-    ebo = glGenBuffers(1)
+	vao = glGenVertexArrays(1)
+	vbo = glGenBuffers(1)
+	ebo = glGenBuffers(1)
 
-    glBindVertexArray(vao)
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertices_data.nbytes, vertices_data, GL_STATIC_DRAW)
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_data.nbytes, indices_data, GL_STATIC_DRAW)
+	glBindVertexArray(vao)
+	
+	glBindBuffer(GL_ARRAY_BUFFER, vbo)
+	glBufferData(GL_ARRAY_BUFFER, vertices_data.nbytes, vertices_data, GL_STATIC_DRAW)
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_data.nbytes, indices_data, GL_STATIC_DRAW)
 
-    stride = 6 * 4  # 6 floats de 4 bytes
+	stride = 6 * 4  # 6 floats de 4 bytes
 
-    # Atributo 0: Posição (3 floats)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(0))
-    glEnableVertexAttribArray(0)
+	# Atributo 0: Posição (3 floats)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(0))
+	glEnableVertexAttribArray(0)
 
-    # Atributo 1: Normal (3 floats)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(12))
-    glEnableVertexAttribArray(1)
+	# Atributo 1: Normal (3 floats)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(12))
+	glEnableVertexAttribArray(1)
 
-    glBindVertexArray(0)
-    
-    return vao, len(indices_data)
+	glBindVertexArray(0)
+	
+	return vao, len(indices_data)
 
 # -----------------------------------------------
 # Carregamento do Cubemap
@@ -324,42 +324,43 @@ def inicializaSuperficie(tipo='esfera', resolucao_u=30, resolucao_v=30):
 # O sistema de coordenadas do cubemap já usa Y para cima nativamente.
 
 def carregaCubemap(pasta):
-    global Textura_cubemap
+	global Textura_cubemap
 
-    faces = [
-        ("right.jpg",  GL_TEXTURE_CUBE_MAP_POSITIVE_X),
-        ("left.jpg",   GL_TEXTURE_CUBE_MAP_NEGATIVE_X),
-        ("top.jpg",    GL_TEXTURE_CUBE_MAP_POSITIVE_Y),
-        ("bottom.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y),
-        ("front.jpg",  GL_TEXTURE_CUBE_MAP_POSITIVE_Z),
-        ("back.jpg",   GL_TEXTURE_CUBE_MAP_NEGATIVE_Z),
-    ]
+	faces = [
+		("right.jpg",  GL_TEXTURE_CUBE_MAP_POSITIVE_X),
+		("left.jpg",   GL_TEXTURE_CUBE_MAP_NEGATIVE_X),
+		("top.jpg",    GL_TEXTURE_CUBE_MAP_POSITIVE_Y),
+		("bottom.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y),
+		("front.jpg",  GL_TEXTURE_CUBE_MAP_POSITIVE_Z),
+		("back.jpg",   GL_TEXTURE_CUBE_MAP_NEGATIVE_Z),
+	]
 
-    Textura_cubemap = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
+	Textura_cubemap = glGenTextures(1)
+	glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-    for nome, target in faces:
-        caminho = os.path.join(pasta, nome)
-        img     = Image.open(caminho).convert("RGB")   # cubemap usa RGB (sem alpha)
-        # NÃO flipar — cubemap já tem Y para cima
-        dados   = np.array(img, dtype=np.uint8)
-        larg, alt = img.size
+	for nome, target in faces:
+		caminho = os.path.join(pasta, nome)
+		img     = Image.open(caminho).convert("RGB")   # cubemap usa RGB (sem alpha)
+		# NÃO flipar — cubemap já tem Y para cima
+		dados   = np.array(img, dtype=np.uint8)
+		larg, alt = img.size
 
-        glTexImage2D(target, 0, GL_RGB, larg, alt, 0,
-                     GL_RGB, GL_UNSIGNED_BYTE, dados)
-        print(f"  Face carregada: {nome} ({larg}x{alt})")
+		glTexImage2D(target, 0, GL_RGB, larg, alt, 0,
+					 GL_RGB, GL_UNSIGNED_BYTE, dados)
+		print(f"  Face carregada: {nome} ({larg}x{alt})")
 
-    # GL_LINEAR para suavidade nas bordas entre faces
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+	# GL_LINEAR para suavidade nas bordas entre faces
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-    # GL_CLAMP_TO_EDGE em todos os 3 eixos: evita costuras visíveis
-    # nas bordas onde duas faces do cubemap se encontram
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+	# GL_CLAMP_TO_EDGE em todos os 3 eixos: evita costuras visíveis
+	# nas bordas onde duas faces do cubemap se encontram
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
-    print(f"Cubemap carregado: {pasta}/")
+	print(f"Cubemap carregado: {pasta}/")
 
 # -----------------------------------------------
 # Shaders
@@ -378,31 +379,31 @@ def carregaCubemap(pasta):
 #    - Pipeline normal com transform + view + proj + sampler2D.
 
 def inicializaShaders():
-    global Shader_skybox, Shader_phong, Shader_reflexao
+	global Shader_skybox, Shader_phong, Shader_reflexao
 
-    # --- Shader do Skybox ---
-    vs_skybox = """
-        #version 400
-        layout(location = 0) in vec3 vertex_posicao;
+	# --- Shader do Skybox ---
+	vs_skybox = """
+		#version 400
+		layout(location = 0) in vec3 vertex_posicao;
 
-        uniform mat4 view;
-        uniform mat4 proj;
+		uniform mat4 view;
+		uniform mat4 proj;
 
-        out vec3 dir_textura;   // direção de amostragem para o samplerCube
+		out vec3 dir_textura;   // direção de amostragem para o samplerCube
 
-        void main() {
-            dir_textura = vertex_posicao;   // posição do vértice = direção no espaço
+		void main() {
+			dir_textura = vertex_posicao;   // posição do vértice = direção no espaço
 
-            // View sem translação: apenas a parte 3x3 superior (rotação)
-            // Isso é feito na CPU antes de passar a uniform (veja especificaViewSkybox)
-            vec4 pos = proj * view * vec4(vertex_posicao, 1.0);
+			// View sem translação: apenas a parte 3x3 superior (rotação)
+			// Isso é feito na CPU antes de passar a uniform (veja especificaViewSkybox)
+			vec4 pos = proj * view * vec4(vertex_posicao, 1.0);
 
-            // Força z = w → após divisão perspectiva z/w = 1.0 (profundidade máxima)
-            // Combinado com GL_LEQUAL, o skybox passa no depth test mas fica atrás
-            gl_Position = pos.xyww;
-        }
-    """
-    fs_skybox = """
+			// Força z = w → após divisão perspectiva z/w = 1.0 (profundidade máxima)
+			// Combinado com GL_LEQUAL, o skybox passa no depth test mas fica atrás
+			gl_Position = pos.xyww;
+		}
+	"""
+	fs_skybox = """
         #version 400
         in vec3 dir_textura;
         uniform samplerCube skybox;   // cubemap — amostrado com vec3
@@ -414,115 +415,126 @@ def inicializaShaders():
         }
     """
 
-    vs = OpenGL.GL.shaders.compileShader(vs_skybox, GL_VERTEX_SHADER)
-    fs = OpenGL.GL.shaders.compileShader(fs_skybox, GL_FRAGMENT_SHADER)
-    Shader_skybox = OpenGL.GL.shaders.compileProgram(vs, fs)
-    glDeleteShader(vs)
-    glDeleteShader(fs)
+	vs = OpenGL.GL.shaders.compileShader(vs_skybox, GL_VERTEX_SHADER)
+	fs = OpenGL.GL.shaders.compileShader(fs_skybox, GL_FRAGMENT_SHADER)
+	Shader_skybox = OpenGL.GL.shaders.compileProgram(vs, fs)
+	glDeleteShader(vs)
+	glDeleteShader(fs)
 
-    # SHADER PHONG (Sem textura, luz do sol embutida)
-    vs_phong = """
+	# SHADER PHONG (Sem textura, luz do sol embutida)
+	vs_phong = """
+		#version 450
+		layout(location = 0) in vec3 vertex_posicao;
+		layout(location = 1) in vec3 vertex_normal;
+		uniform mat4 transform, view, proj;
+		out vec3 fragPosWorld;
+		out vec3 normalWorld;
+		void main() {
+			vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
+			fragPosWorld = worldPos.xyz;
+			normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
+			gl_Position = proj * view * worldPos;
+		}
+	"""
+	fs_phong = """
+		#version 450
+		in vec3 fragPosWorld;
+		in vec3 normalWorld;
+		out vec4 frag_colour;
+
+		uniform vec3 viewPos;
+		uniform vec3 objectColor;
+
+		void main() {
+			vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0)); 
+			vec3 sunColor = vec3(1.0, 1.0, 0.9);
+
+			vec3 N = normalize(normalWorld);
+			vec3 V = normalize(viewPos - fragPosWorld);
+			vec3 R = reflect(-sunLightDir, N);
+
+			float Ka = 0.3;
+			float Kd = 0.7;
+			float Ks = 0.5;
+			float shininess = 32.0;
+
+			vec3 ambient = Ka * sunColor;
+			float diff = max(dot(N, sunLightDir), 0.0);
+			vec3 diffuse = Kd * diff * sunColor;
+			float spec = pow(max(dot(V, R), 0.0), shininess);
+			vec3 specular = Ks * spec * sunColor;
+
+			vec3 result = (ambient + diffuse) * objectColor + specular;
+			frag_colour = vec4(result, 1.0);
+		}
+		"""
+	
+	vs = OpenGL.GL.shaders.compileShader(vs_phong, GL_VERTEX_SHADER)
+	fs = OpenGL.GL.shaders.compileShader(fs_phong, GL_FRAGMENT_SHADER)
+	Shader_phong = OpenGL.GL.shaders.compileProgram(vs, fs)
+	glDeleteShader(vs)
+	glDeleteShader(fs)
+
+	# SHADER DE REFLEXÃO (WIP)
+	vs_reflexao = """
+		#version 450
+		layout(location = 0) in vec3 vertex_posicao;
+		layout(location = 1) in vec3 vertex_normal;
+		
+		uniform mat4 transform, view, proj;
+		
+		out vec3 fragPosWorld;
+		out vec3 normalWorld;
+		
+		void main() {
+			vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
+			fragPosWorld = worldPos.xyz;
+			// Transforma a normal para o espaço do mundo corretamente
+			normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
+			gl_Position = proj * view * worldPos;
+		}
+	"""
+	fs_reflexao = """
         #version 450
-        layout(location = 0) in vec3 vertex_posicao;
-        layout(location = 1) in vec3 vertex_normal;
-        uniform mat4 transform, view, proj;
-        out vec3 fragPosWorld;
-        out vec3 normalWorld;
-        void main() {
-            vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
-            fragPosWorld = worldPos.xyz;
-            normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
-            gl_Position = proj * view * worldPos;
-        }
+		in vec3 fragPosWorld;
+		in vec3 normalWorld;
+
+		uniform vec3 viewPos;
+		uniform samplerCube skybox;
+
+		out vec4 frag_colour;
+
+		void main() {
+			vec3 N = normalize(normalWorld);
+			
+			// Vetor do fragmento PARA a câmera (visão)
+			vec3 V = normalize(viewPos - fragPosWorld); 
+			
+			// Vetor da câmera PARA o fragmento (incidência)
+			vec3 I = -V; 
+			
+			// 1. Amostra a cor da reflexão pura
+			vec3 R = reflect(I, N);
+			vec4 reflexao_cor = texture(skybox, R);
+
+			// 2. Calcula o Fator Fresnel (Aproximação de Schlick)
+			float R0 = 0.2; // Refletividade base (0.2 dá um aspecto de plástico polido ou cerâmica)
+			float cosTheta = max(dot(N, V), 0.0);
+			float fresnel = R0 + (1.0 - R0) * pow(1.0 - cosTheta, 5.0);
+
+			// 3. Define uma cor base escura para o objeto (simulando a cor difusa dele)
+			vec4 cor_base = vec4(0.05, 0.05, 0.05, 1.0); // Cinza bem escuro
+
+			// 4. Mistura a cor base com o reflexo do ambiente baseado no ângulo de visão
+			frag_colour = mix(cor_base, reflexao_cor, fresnel);
+		}
     """
-    fs_phong = """
-        #version 450
-        in vec3 fragPosWorld;
-        in vec3 normalWorld;
-        out vec4 frag_colour;
-
-        uniform vec3 viewPos;
-        uniform vec3 objectColor;
-
-        void main() {
-            vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0)); 
-            vec3 sunColor = vec3(1.0, 1.0, 0.9);
-
-            vec3 N = normalize(normalWorld);
-            vec3 V = normalize(viewPos - fragPosWorld);
-            vec3 R = reflect(-sunLightDir, N);
-
-            float Ka = 0.3;
-            float Kd = 0.7;
-            float Ks = 0.5;
-            float shininess = 32.0;
-
-            vec3 ambient = Ka * sunColor;
-            float diff = max(dot(N, sunLightDir), 0.0);
-            vec3 diffuse = Kd * diff * sunColor;
-            float spec = pow(max(dot(V, R), 0.0), shininess);
-            vec3 specular = Ks * spec * sunColor;
-
-            vec3 result = (ambient + diffuse) * objectColor + specular;
-            frag_colour = vec4(result, 1.0);
-        }
-        """
-    
-    vs = OpenGL.GL.shaders.compileShader(vs_phong, GL_VERTEX_SHADER)
-    fs = OpenGL.GL.shaders.compileShader(fs_phong, GL_FRAGMENT_SHADER)
-    Shader_phong = OpenGL.GL.shaders.compileProgram(vs, fs)
-    glDeleteShader(vs)
-    glDeleteShader(fs)
-
-    # SHADER DE REFLEXÃO (WIP)
-    vs_reflexao = """
-        #version 450
-        layout(location = 0) in vec3 vertex_posicao;
-        layout(location = 1) in vec3 vertex_normal;
-        
-        uniform mat4 transform, view, proj;
-        
-        out vec3 fragPosWorld;
-        out vec3 normalWorld;
-        
-        void main() {
-            vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
-            fragPosWorld = worldPos.xyz;
-            // Transforma a normal para o espaço do mundo corretamente
-            normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
-            gl_Position = proj * view * worldPos;
-        }
-    """
-    fs_reflexao = """
-        #version 450
-        in vec3 fragPosWorld;
-        in vec3 normalWorld;
-        
-        uniform vec3 viewPos;
-        uniform samplerCube skybox;
-        
-        out vec4 frag_colour;
-        
-        void main() {
-            // =========================================================
-            // TODO: Implementar o Environment Mapping aqui
-            // =========================================================
-            // Dicas para a implementação:
-            // 1. Calcule o vetor da câmera para o fragmento (I) usando viewPos e fragPosWorld.
-            // 2. Garanta que a normal recebida (normalWorld) esteja normalizada.
-            // 3. Use a função nativa reflect() do GLSL para encontrar o vetor de reflexão (R).
-            // 4. Use a função texture() amostrando o 'skybox' com o vetor R para obter a cor.
-            
-            // Cor sólida temporária para testar a malha enquanto a reflexão não é feita.
-            frag_colour = vec4(0.4, 0.4, 0.4, 1.0);
-        }
-    """
-    
-    vs = OpenGL.GL.shaders.compileShader(vs_reflexao, GL_VERTEX_SHADER)
-    fs = OpenGL.GL.shaders.compileShader(fs_reflexao, GL_FRAGMENT_SHADER)
-    Shader_reflexao = OpenGL.GL.shaders.compileProgram(vs, fs)
-    glDeleteShader(vs)
-    glDeleteShader(fs)
+	
+	vs = OpenGL.GL.shaders.compileShader(vs_reflexao, GL_VERTEX_SHADER)
+	fs = OpenGL.GL.shaders.compileShader(fs_reflexao, GL_FRAGMENT_SHADER)
+	Shader_reflexao = OpenGL.GL.shaders.compileProgram(vs, fs)
+	glDeleteShader(vs)
+	glDeleteShader(fs)
 
 
 # -----------------------------
@@ -530,121 +542,121 @@ def inicializaShaders():
 # -----------------------------
 
 def calculaFront():
-    front = np.array([
-        np.cos(np.radians(Cam_yaw)) * np.cos(np.radians(Cam_pitch)),
-        np.sin(np.radians(Cam_pitch)),
-        np.sin(np.radians(Cam_yaw)) * np.cos(np.radians(Cam_pitch))
-    ])
-    return front / np.linalg.norm(front)
+	front = np.array([
+		np.cos(np.radians(Cam_yaw)) * np.cos(np.radians(Cam_pitch)),
+		np.sin(np.radians(Cam_pitch)),
+		np.sin(np.radians(Cam_yaw)) * np.cos(np.radians(Cam_pitch))
+	])
+	return front / np.linalg.norm(front)
 
 def montaViewMatrix(front, remover_translacao=False):
-    """
-    Monta a matriz de visualização.
-    Se remover_translacao=True, zera a coluna de translação —
-    usado pelo skybox para que ele acompanhe a câmera sem se deslocar.
-    """
-    up = np.array([0.0, 1.0, 0.0])
-    s  = np.cross(front, up);  s /= np.linalg.norm(s)
-    u  = np.cross(s, front)
+	"""
+	Monta a matriz de visualização.
+	Se remover_translacao=True, zera a coluna de translação —
+	usado pelo skybox para que ele acompanhe a câmera sem se deslocar.
+	"""
+	up = np.array([0.0, 1.0, 0.0])
+	s  = np.cross(front, up);  s /= np.linalg.norm(s)
+	u  = np.cross(s, front)
 
-    view = np.identity(4, dtype=np.float32)
-    view[0, :3] =  s
-    view[1, :3] =  u
-    view[2, :3] = -front
+	view = np.identity(4, dtype=np.float32)
+	view[0, :3] =  s
+	view[1, :3] =  u
+	view[2, :3] = -front
 
-    if not remover_translacao:
-        view[0, 3] = -np.dot(s,     Cam_pos)
-        view[1, 3] = -np.dot(u,     Cam_pos)
-        view[2, 3] =  np.dot(front, Cam_pos)
-    # se remover_translacao=True, coluna 3 permanece zero → só rotação
+	if not remover_translacao:
+		view[0, 3] = -np.dot(s,     Cam_pos)
+		view[1, 3] = -np.dot(u,     Cam_pos)
+		view[2, 3] =  np.dot(front, Cam_pos)
+	# se remover_translacao=True, coluna 3 permanece zero → só rotação
 
-    return view
+	return view
 
 def montaProjecaoMatrix():
-    znear, zfar = 0.1, 100.0
-    fov     = np.radians(67.0)
-    aspecto = WIDTH / HEIGHT
+	znear, zfar = 0.1, 100.0
+	fov     = np.radians(67.0)
+	aspecto = WIDTH / HEIGHT
 
-    a = 1 / (np.tan(fov / 2) * aspecto)
-    b = 1 /  np.tan(fov / 2)
-    c = (zfar + znear) / (znear - zfar)
-    d = (2 * znear * zfar) / (znear - zfar)
+	a = 1 / (np.tan(fov / 2) * aspecto)
+	b = 1 /  np.tan(fov / 2)
+	c = (zfar + znear) / (znear - zfar)
+	d = (2 * znear * zfar) / (znear - zfar)
 
-    return np.array([
-        [a, 0,  0, 0],
-        [0, b,  0, 0],
-        [0, 0,  c, d],
-        [0, 0, -1, 1]
-    ], dtype=np.float32)
+	return np.array([
+		[a, 0,  0, 0],
+		[0, b,  0, 0],
+		[0, 0,  c, d],
+		[0, 0, -1, 0]
+	], dtype=np.float32)
 
 # -----------------------------
 # Transformação de modelo
 # -----------------------------
 
 def transformacaoGenerica(shader, Tx, Ty, Tz, Sx, Sy, Sz, Rx, Ry, Rz):
-    translacao = np.array([
-        [1, 0, 0, Tx],
-        [0, 1, 0, Ty],
-        [0, 0, 1, Tz],
-        [0, 0, 0,  1]
-    ], dtype=np.float32)
+	translacao = np.array([
+		[1, 0, 0, Tx],
+		[0, 1, 0, Ty],
+		[0, 0, 1, Tz],
+		[0, 0, 0,  1]
+	], dtype=np.float32)
 
-    rx, ry, rz = np.radians([Rx, Ry, Rz])
+	rx, ry, rz = np.radians([Rx, Ry, Rz])
 
-    rotX = np.array([
-        [1,           0,            0, 0],
-        [0, np.cos(rx), -np.sin(rx), 0],
-        [0, np.sin(rx),  np.cos(rx), 0],
-        [0,           0,            0, 1]
-    ], dtype=np.float32)
+	rotX = np.array([
+		[1,           0,            0, 0],
+		[0, np.cos(rx), -np.sin(rx), 0],
+		[0, np.sin(rx),  np.cos(rx), 0],
+		[0,           0,            0, 1]
+	], dtype=np.float32)
 
-    rotY = np.array([
-        [ np.cos(ry), 0, np.sin(ry), 0],
-        [          0, 1,          0, 0],
-        [-np.sin(ry), 0, np.cos(ry), 0],
-        [          0, 0,          0, 1]
-    ], dtype=np.float32)
+	rotY = np.array([
+		[ np.cos(ry), 0, np.sin(ry), 0],
+		[          0, 1,          0, 0],
+		[-np.sin(ry), 0, np.cos(ry), 0],
+		[          0, 0,          0, 1]
+	], dtype=np.float32)
 
-    rotZ = np.array([
-        [np.cos(rz), -np.sin(rz), 0, 0],
-        [np.sin(rz),  np.cos(rz), 0, 0],
-        [         0,           0, 1, 0],
-        [         0,           0, 0, 1]
-    ], dtype=np.float32)
+	rotZ = np.array([
+		[np.cos(rz), -np.sin(rz), 0, 0],
+		[np.sin(rz),  np.cos(rz), 0, 0],
+		[         0,           0, 1, 0],
+		[         0,           0, 0, 1]
+	], dtype=np.float32)
 
-    escala = np.array([
-        [Sx,  0,  0, 0],
-        [ 0, Sy,  0, 0],
-        [ 0,  0, Sz, 0],
-        [ 0,  0,  0, 1]
-    ], dtype=np.float32)
+	escala = np.array([
+		[Sx,  0,  0, 0],
+		[ 0, Sy,  0, 0],
+		[ 0,  0, Sz, 0],
+		[ 0,  0,  0, 1]
+	], dtype=np.float32)
 
-    transform = translacao @ rotZ @ rotY @ rotX @ escala
-    loc = glGetUniformLocation(shader, "transform")
-    glUniformMatrix4fv(loc, 1, GL_TRUE, transform)
+	transform = translacao @ rotZ @ rotY @ rotX @ escala
+	loc = glGetUniformLocation(shader, "transform")
+	glUniformMatrix4fv(loc, 1, GL_TRUE, transform)
 
 # -----------------------------
 # Teclado
 # -----------------------------
 
 def trataTeclado():
-    global Cam_pos
+	global Cam_pos
 
-    velocidade = Cam_speed * Tempo_entre_frames
-    frente  = calculaFront()
-    direita = np.cross(frente, np.array([0.0, 1.0, 0.0]))
-    direita /= np.linalg.norm(direita)
+	velocidade = Cam_speed * Tempo_entre_frames
+	frente  = calculaFront()
+	direita = np.cross(frente, np.array([0.0, 1.0, 0.0]))
+	direita /= np.linalg.norm(direita)
 
-    if glfw.get_key(Window, glfw.KEY_W) == glfw.PRESS:
-        Cam_pos += frente  * velocidade
-    if glfw.get_key(Window, glfw.KEY_S) == glfw.PRESS:
-        Cam_pos -= frente  * velocidade
-    if glfw.get_key(Window, glfw.KEY_A) == glfw.PRESS:
-        Cam_pos -= direita * velocidade
-    if glfw.get_key(Window, glfw.KEY_D) == glfw.PRESS:
-        Cam_pos += direita * velocidade
-    if glfw.get_key(Window, glfw.KEY_ESCAPE) == glfw.PRESS:
-        glfw.set_window_should_close(Window, True)
+	if glfw.get_key(Window, glfw.KEY_W) == glfw.PRESS:
+		Cam_pos += frente  * velocidade
+	if glfw.get_key(Window, glfw.KEY_S) == glfw.PRESS:
+		Cam_pos -= frente  * velocidade
+	if glfw.get_key(Window, glfw.KEY_A) == glfw.PRESS:
+		Cam_pos -= direita * velocidade
+	if glfw.get_key(Window, glfw.KEY_D) == glfw.PRESS:
+		Cam_pos += direita * velocidade
+	if glfw.get_key(Window, glfw.KEY_ESCAPE) == glfw.PRESS:
+		glfw.set_window_should_close(Window, True)
 
 # -----------------------------------------------
 # Renderização
@@ -663,111 +675,111 @@ def trataTeclado():
 #   onde nenhum objeto foi renderizado.
 
 def inicializaRenderizacao():
-    global Tempo_entre_frames
+	global Tempo_entre_frames
 
-    tempo_anterior = glfw.get_time()
-    glEnable(GL_DEPTH_TEST)
+	tempo_anterior = glfw.get_time()
+	glEnable(GL_DEPTH_TEST)
 
-    proj = montaProjecaoMatrix()
+	proj = montaProjecaoMatrix()
 
-    while not glfw.window_should_close(Window):
-        tempo_atual        = glfw.get_time()
-        Tempo_entre_frames = tempo_atual - tempo_anterior
-        tempo_anterior     = tempo_atual
+	while not glfw.window_should_close(Window):
+		tempo_atual        = glfw.get_time()
+		Tempo_entre_frames = tempo_atual - tempo_anterior
+		tempo_anterior     = tempo_atual
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glViewport(0, 0, WIDTH, HEIGHT)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+		glViewport(0, 0, WIDTH, HEIGHT)
 
-        front = calculaFront()
+		front = calculaFront()
 
-        # ---- 1) Objetos normais da cena ----
-        view_normal = montaViewMatrix(front, remover_translacao=False)
-        view_skybox = montaViewMatrix(front, remover_translacao=True) #
-        
-        
-        glDepthFunc(GL_LESS)
-        glUseProgram(Shader_phong)
+		# ---- 1) Objetos normais da cena ----
+		view_normal = montaViewMatrix(front, remover_translacao=False)
+		view_skybox = montaViewMatrix(front, remover_translacao=True) #
+		
+		
+		glDepthFunc(GL_LESS)
+		glUseProgram(Shader_phong)
 
-        glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "view"), 1, GL_TRUE, view_normal)
-        glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "proj"), 1, GL_TRUE, proj)
-        glUniform3fv(glGetUniformLocation(Shader_phong, "viewPos"), 1, Cam_pos) #
-        
-        # Desenhar o Cone Fosco (Vermelho)
-        vao_cone, n_indices_cone = Objetos_cenario["cone"]
-        glBindVertexArray(vao_cone)
-        glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.8, 0.2, 0.2)
-        # Posiciona o cone em x=-2.0
-        transformacaoGenerica(Shader_phong, -2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-        glDrawElements(GL_TRIANGLES, n_indices_cone, GL_UNSIGNED_INT, None)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "view"), 1, GL_TRUE, view_normal)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "proj"), 1, GL_TRUE, proj)
+		glUniform3fv(glGetUniformLocation(Shader_phong, "viewPos"), 1, Cam_pos) #
+		
+		# Desenhar o Cone Fosco (Vermelho)
+		vao_cone, n_indices_cone = Objetos_cenario["cone"]
+		glBindVertexArray(vao_cone)
+		glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.8, 0.2, 0.2)
+		# Posiciona o cone em x=-2.0
+		transformacaoGenerica(Shader_phong, -2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_cone, GL_UNSIGNED_INT, None)
 
-        # Desenhar a Esfera Fosca (Verde) - só para ter mais um objeto na cena!
-        vao_esfera, n_indices_esfera = Objetos_cenario["esfera"]
-        glBindVertexArray(vao_esfera)
-        glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.2, 0.8, 0.2)
-        # Posiciona a esfera no fundo em z=-2.0
-        transformacaoGenerica(Shader_phong, 0.0, 0.0, -2.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-        glDrawElements(GL_TRIANGLES, n_indices_esfera, GL_UNSIGNED_INT, None)
+		# Desenhar a Esfera Fosca (Verde) - só para ter mais um objeto na cena!
+		vao_esfera, n_indices_esfera = Objetos_cenario["esfera"]
+		glBindVertexArray(vao_esfera)
+		glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.2, 0.8, 0.2)
+		# Posiciona a esfera no fundo em z=-2.0
+		transformacaoGenerica(Shader_phong, 0.0, 0.0, -2.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_esfera, GL_UNSIGNED_INT, None)
 
-        # ---- Objeto Refletor  ----
-        glUseProgram(Shader_reflexao)
-        
-        glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "view"), 1, GL_TRUE, view_normal)
-        glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "proj"), 1, GL_TRUE, proj)
-        glUniform3fv(glGetUniformLocation(Shader_reflexao, "viewPos"), 1, Cam_pos)
+		# ---- Objeto Refletor  ----
+		glUseProgram(Shader_reflexao)
+		
+		glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "view"), 1, GL_TRUE, view_normal)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "proj"), 1, GL_TRUE, proj)
+		glUniform3fv(glGetUniformLocation(Shader_reflexao, "viewPos"), 1, Cam_pos)
 
-        # Ativa a textura do cubemap para o shader de reflexão
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
-        glUniform1i(glGetUniformLocation(Shader_reflexao, "skybox"), 0)
+		# Ativa a textura do cubemap para o shader de reflexão
+		glActiveTexture(GL_TEXTURE0)
+		glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
+		glUniform1i(glGetUniformLocation(Shader_reflexao, "skybox"), 0)
 
-        # Desenhar o Torus Refletor
-        vao_torus, n_indices_torus = Objetos_cenario["torus"]
-        glBindVertexArray(vao_torus)
-        # Posiciona o torus em x=2.0
-        transformacaoGenerica(Shader_reflexao, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-        glDrawElements(GL_TRIANGLES, n_indices_torus, GL_UNSIGNED_INT, None)
-        
-        # ---- 2) Skybox — sempre por último ----
-        # View sem translação: câmera gira mas o skybox não se afasta
-        view_skybox = montaViewMatrix(front, remover_translacao=True)
+		# Desenhar o Torus Refletor
+		vao_torus, n_indices_torus = Objetos_cenario["torus"]
+		glBindVertexArray(vao_torus)
+		# Posiciona o torus em x=2.0
+		transformacaoGenerica(Shader_reflexao, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_torus, GL_UNSIGNED_INT, None)
+		
+		# ---- 2) Skybox — sempre por último ----
+		# View sem translação: câmera gira mas o skybox não se afasta
+		view_skybox = montaViewMatrix(front, remover_translacao=True)
 
-        glDepthFunc(GL_LEQUAL)   # deixa z=1.0 passar no depth test
-        glUseProgram(Shader_skybox)
+		glDepthFunc(GL_LEQUAL)   # deixa z=1.0 passar no depth test
+		glUseProgram(Shader_skybox)
 
-        glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "view"), 1, GL_TRUE, view_skybox)
-        glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "proj"), 1, GL_TRUE, proj)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "view"), 1, GL_TRUE, view_skybox)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "proj"), 1, GL_TRUE, proj)
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
-        glUniform1i(glGetUniformLocation(Shader_skybox, "skybox"), 0)
+		glActiveTexture(GL_TEXTURE0)
+		glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
+		glUniform1i(glGetUniformLocation(Shader_skybox, "skybox"), 0)
 
-        glBindVertexArray(Vao_skybox)
-        glDrawArrays(GL_TRIANGLES, 0, 36)
+		glBindVertexArray(Vao_skybox)
+		glDrawArrays(GL_TRIANGLES, 0, 36)
 
-        # Restaura para o próximo frame
-        glDepthFunc(GL_LESS)
+		# Restaura para o próximo frame
+		glDepthFunc(GL_LESS)
 
-        glfw.swap_buffers(Window)
-        glfw.poll_events()
-        trataTeclado()
+		glfw.swap_buffers(Window)
+		glfw.poll_events()
+		trataTeclado()
 
-    glfw.terminate()
+	glfw.terminate()
 
 # -----------------------------
 # Função principal
 # -----------------------------
 
 def main():
-    inicializaOpenGL()
-    
-    Objetos_cenario["esfera"] = inicializaSuperficie('esfera')
-    Objetos_cenario["torus"]  = inicializaSuperficie('torus')
-    Objetos_cenario["cone"]   = inicializaSuperficie('cone')
-    
-    inicializaSkybox()
-    inicializaShaders()
-    carregaCubemap(PASTA_SKYBOX)
-    inicializaRenderizacao()
+	inicializaOpenGL()
+	
+	Objetos_cenario["esfera"] = inicializaSuperficie('esfera')
+	Objetos_cenario["torus"]  = inicializaSuperficie('torus')
+	Objetos_cenario["cone"]   = inicializaSuperficie('cone')
+	
+	inicializaSkybox()
+	inicializaShaders()
+	carregaCubemap(PASTA_SKYBOX)
+	inicializaRenderizacao()
 
 if __name__ == "__main__":
-    main()
+	main()
