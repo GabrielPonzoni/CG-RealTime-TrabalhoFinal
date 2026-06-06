@@ -120,7 +120,7 @@ def inicializaOpenGL():
 	glfw.set_input_mode(Window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 	glfw.set_cursor_pos_callback(Window, mouse_callback)
 	glfw.set_key_callback(Window, key_callback)
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+	glEnable(GL_DEPTH_TEST)
 
 	print("Placa de vídeo:", glGetString(GL_RENDERER))
 	print("Versão do OpenGL:", glGetString(GL_VERSION))
