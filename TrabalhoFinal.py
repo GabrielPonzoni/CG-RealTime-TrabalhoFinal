@@ -506,27 +506,11 @@ def inicializaShaders():
 
 		void main() {
 			vec3 N = normalize(normalWorld);
-			
-			// Vetor do fragmento PARA a câmera (visão)
 			vec3 V = normalize(viewPos - fragPosWorld); 
-			
-			// Vetor da câmera PARA o fragmento (incidência)
 			vec3 I = -V; 
 			
-			// 1. Amostra a cor da reflexão pura
 			vec3 R = reflect(I, N);
-			vec4 reflexao_cor = texture(skybox, R);
-
-			// 2. Calcula o Fator Fresnel (Aproximação de Schlick)
-			float R0 = 0.2; // Refletividade base (0.2 dá um aspecto de plástico polido ou cerâmica)
-			float cosTheta = max(dot(N, V), 0.0);
-			float fresnel = R0 + (1.0 - R0) * pow(1.0 - cosTheta, 5.0);
-
-			// 3. Define uma cor base escura para o objeto (simulando a cor difusa dele)
-			vec4 cor_base = vec4(0.05, 0.05, 0.05, 1.0); // Cinza bem escuro
-
-			// 4. Mistura a cor base com o reflexo do ambiente baseado no ângulo de visão
-			frag_colour = mix(cor_base, reflexao_cor, fresnel);
+			frag_colour = texture(skybox, R);
 		}
     """
 	
