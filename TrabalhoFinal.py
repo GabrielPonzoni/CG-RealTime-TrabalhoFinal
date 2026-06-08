@@ -4,16 +4,30 @@
 #
 # DESCRIÇÃO:
 # Este script implementa a técnica de Environment Mapping utilizando um Cubemap.
-# O ambiente virtual é renderizado através de um Skybox estático, que serve 
+# O ambiente virtual é renderizado através de um Skybox estático, que serve
 # como base de iluminação e reflexão para superfícies paramétricas na cena.
+#
+# SHADER UNIFICADO PARA OBJETOS:
+# Em vez de dois programas de shader separados (Phong e Reflexão), existe
+# agora um único shader para todos os objetos da cena. O comportamento é
+# controlado pelo uniform "u_modo" (int), passado via Python:
+#
+#   MODO_FOSCO     = 0  → iluminação Phong clássica (sem cubemap)
+#   MODO_REFLEXIVO = 1  → reflexão pura via Environment Mapping (cubemap)
+#
+# Para configurar um objeto, basta chamar:
+#   glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_FOSCO)
+#   glUniform3f(glGetUniformLocation(Shader_objeto, "objectColor"), R, G, B)
+# ou:
+#   glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_REFLEXIVO)
 #
 # CONCEITOS TÉCNICOS APLICADOS:
 # - GL_TEXTURE_CUBE_MAP: Mapeamento de textura em 6 faces independentes.
-# - Amostragem 3D (vec3): Utilização dos próprios vértices do cubo como 
+# - Amostragem 3D (vec3): Utilização dos próprios vértices do cubo como
 #   vetores de direção para amostragem da textura, dispensando coordenadas UV.
-# - Skybox Trick: Renderização do cubo de fundo forçando o depth test para 
+# - Skybox Trick: Renderização do cubo de fundo forçando o depth test para
 #   GL_LEQUAL, garantindo que o cenário seja sempre renderizado atrás da geometria.
-# - Matriz de Visualização: Remoção da translação da view matrix no shader 
+# - Matriz de Visualização: Remoção da translação da view matrix no shader
 #   do skybox, permitindo que a câmera rotacione sem "escapar" do cenário.
 #
 # TEXTURAS NECESSÁRIAS:
@@ -49,8 +63,11 @@ WIDTH, HEIGHT = 800, 600
 
 # Shaders
 Shader_skybox       = None      # shader exclusivo do skybox (sem transform, sem UV)
-Shader_phong        = None      # Objetos não-refletores com iluminação Phong
-Shader_reflexao     = None      # Objeto refletor (Environment Mapping)
+Shader_objeto       = None      # shader unificado: fosco (Phong) OU reflexivo, via uniform u_modo
+
+# Modos do shader unificado — passe via glUniform1i(... "u_modo" ...)
+MODO_FOSCO     = 0   # iluminação Phong clássica
+MODO_REFLEXIVO = 1   # reflexão pura via cubemap (Environment Mapping)
 
 # VAOs e Contagem de Índices
 Vao_skybox          = None
@@ -379,9 +396,11 @@ def carregaCubemap(pasta):
 #    - Pipeline normal com transform + view + proj + sampler2D.
 
 def inicializaShaders():
-	global Shader_skybox, Shader_phong, Shader_reflexao
+	global Shader_skybox, Shader_objeto
 
-	# --- Shader do Skybox ---
+	# ---------------------------------------------------------------
+	# 1) SHADER DO SKYBOX  (sem transform, sem UV, profundidade = max)
+	# ---------------------------------------------------------------
 	vs_skybox = """
 		#version 400
 		layout(location = 0) in vec3 vertex_posicao;
@@ -389,31 +408,25 @@ def inicializaShaders():
 		uniform mat4 view;
 		uniform mat4 proj;
 
-		out vec3 dir_textura;   // direção de amostragem para o samplerCube
+		out vec3 dir_textura;
 
 		void main() {
-			dir_textura = vertex_posicao;   // posição do vértice = direção no espaço
-
-			// View sem translação: apenas a parte 3x3 superior (rotação)
-			// Isso é feito na CPU antes de passar a uniform (veja especificaViewSkybox)
+			dir_textura = vertex_posicao;
 			vec4 pos = proj * view * vec4(vertex_posicao, 1.0);
-
-			// Força z = w → após divisão perspectiva z/w = 1.0 (profundidade máxima)
-			// Combinado com GL_LEQUAL, o skybox passa no depth test mas fica atrás
+			// Força z = w → profundidade máxima após divisão perspectiva
 			gl_Position = pos.xyww;
 		}
 	"""
 	fs_skybox = """
-        #version 400
-        in vec3 dir_textura;
-        uniform samplerCube skybox;   // cubemap — amostrado com vec3
+		#version 400
+		in vec3 dir_textura;
+		uniform samplerCube skybox;
+		out vec4 frag_colour;
 
-        out vec4 frag_colour;
-
-        void main() {
-            frag_colour = texture(skybox, dir_textura);
-        }
-    """
+		void main() {
+			frag_colour = texture(skybox, dir_textura);
+		}
+	"""
 
 	vs = OpenGL.GL.shaders.compileShader(vs_skybox, GL_VERTEX_SHADER)
 	fs = OpenGL.GL.shaders.compileShader(fs_skybox, GL_FRAGMENT_SHADER)
@@ -421,102 +434,86 @@ def inicializaShaders():
 	glDeleteShader(vs)
 	glDeleteShader(fs)
 
-	# SHADER PHONG (Sem textura, luz do sol embutida)
-	vs_phong = """
+	# ---------------------------------------------------------------
+	# 2) SHADER DE OBJETOS
+	#    Controle via uniform:  u_modo = 0 → fosco (Phong)
+	#                           u_modo = 1 → reflexivo (Environment Mapping)
+	# ---------------------------------------------------------------
+	vs_objeto = """
 		#version 450
 		layout(location = 0) in vec3 vertex_posicao;
 		layout(location = 1) in vec3 vertex_normal;
+
 		uniform mat4 transform, view, proj;
+
 		out vec3 fragPosWorld;
 		out vec3 normalWorld;
+
 		void main() {
 			vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
-			fragPosWorld = worldPos.xyz;
-			normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
-			gl_Position = proj * view * worldPos;
+			fragPosWorld  = worldPos.xyz;
+			// Corrige a normal para escala não-uniforme
+			normalWorld   = mat3(transpose(inverse(transform))) * vertex_normal;
+			gl_Position   = proj * view * worldPos;
 		}
 	"""
-	fs_phong = """
+
+	fs_objeto = """
 		#version 450
 		in vec3 fragPosWorld;
 		in vec3 normalWorld;
-		out vec4 frag_colour;
 
+		// ---- uniforms comuns ----
 		uniform vec3 viewPos;
+		uniform samplerCube skybox;     // cubemap sempre disponível (usado no modo reflexivo)
+
+		// ---- controle de modo ----
+		// 0 = MODO_FOSCO     → Phong clássico
+		// 1 = MODO_REFLEXIVO → reflexão pura via cubemap
+		uniform int u_modo;
+
+		// ---- uniforms do modo Phong (ignorados no modo reflexivo) ----
 		uniform vec3 objectColor;
 
-		void main() {
-			vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0)); 
-			vec3 sunColor = vec3(1.0, 1.0, 0.9);
-
-			vec3 N = normalize(normalWorld);
-			vec3 V = normalize(viewPos - fragPosWorld);
-			vec3 R = reflect(-sunLightDir, N);
-
-			float Ka = 0.3;
-			float Kd = 0.7;
-			float Ks = 0.5;
-			float shininess = 32.0;
-
-			vec3 ambient = Ka * sunColor;
-			float diff = max(dot(N, sunLightDir), 0.0);
-			vec3 diffuse = Kd * diff * sunColor;
-			float spec = pow(max(dot(V, R), 0.0), shininess);
-			vec3 specular = Ks * spec * sunColor;
-
-			vec3 result = (ambient + diffuse) * objectColor + specular;
-			frag_colour = vec4(result, 1.0);
-		}
-		"""
-	
-	vs = OpenGL.GL.shaders.compileShader(vs_phong, GL_VERTEX_SHADER)
-	fs = OpenGL.GL.shaders.compileShader(fs_phong, GL_FRAGMENT_SHADER)
-	Shader_phong = OpenGL.GL.shaders.compileProgram(vs, fs)
-	glDeleteShader(vs)
-	glDeleteShader(fs)
-
-	# SHADER DE REFLEXÃO (WIP)
-	vs_reflexao = """
-		#version 450
-		layout(location = 0) in vec3 vertex_posicao;
-		layout(location = 1) in vec3 vertex_normal;
-		
-		uniform mat4 transform, view, proj;
-		
-		out vec3 fragPosWorld;
-		out vec3 normalWorld;
-		
-		void main() {
-			vec4 worldPos = transform * vec4(vertex_posicao, 1.0);
-			fragPosWorld = worldPos.xyz;
-			// Transforma a normal para o espaço do mundo corretamente
-			normalWorld = mat3(transpose(inverse(transform))) * vertex_normal;
-			gl_Position = proj * view * worldPos;
-		}
-	"""
-	fs_reflexao = """
-        #version 450
-		in vec3 fragPosWorld;
-		in vec3 normalWorld;
-
-		uniform vec3 viewPos;
-		uniform samplerCube skybox;
-
 		out vec4 frag_colour;
 
 		void main() {
 			vec3 N = normalize(normalWorld);
-			vec3 V = normalize(viewPos - fragPosWorld); 
-			vec3 I = -V; 
-			
-			vec3 R = reflect(I, N);
-			frag_colour = texture(skybox, R);
+			vec3 V = normalize(viewPos - fragPosWorld);
+
+			if (u_modo == 1) {
+				// ---- MODO REFLEXIVO ----
+				// Reflete o vetor de visão pela normal e amostra o cubemap
+				vec3 R = reflect(-V, N);
+				frag_colour = texture(skybox, R);
+
+			} else {
+				// ---- MODO FOSCO (Phong) ----
+				vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0));
+				vec3 sunColor    = vec3(1.0, 1.0, 0.9);
+
+				vec3 R = reflect(-sunLightDir, N);
+
+				float Ka        = 0.3;
+				float Kd        = 0.7;
+				float Ks        = 0.5;
+				float shininess = 32.0;
+
+				vec3  ambient  = Ka * sunColor;
+				float diff     = max(dot(N, sunLightDir), 0.0);
+				vec3  diffuse  = Kd * diff * sunColor;
+				float spec     = pow(max(dot(V, R), 0.0), shininess);
+				vec3  specular = Ks * spec * sunColor;
+
+				vec3 result = (ambient + diffuse) * objectColor + specular;
+				frag_colour = vec4(result, 1.0);
+			}
 		}
-    """
-	
-	vs = OpenGL.GL.shaders.compileShader(vs_reflexao, GL_VERTEX_SHADER)
-	fs = OpenGL.GL.shaders.compileShader(fs_reflexao, GL_FRAGMENT_SHADER)
-	Shader_reflexao = OpenGL.GL.shaders.compileProgram(vs, fs)
+	"""
+
+	vs = OpenGL.GL.shaders.compileShader(vs_objeto, GL_VERTEX_SHADER)
+	fs = OpenGL.GL.shaders.compileShader(fs_objeto, GL_FRAGMENT_SHADER)
+	Shader_objeto = OpenGL.GL.shaders.compileProgram(vs, fs)
 	glDeleteShader(vs)
 	glDeleteShader(fs)
 
@@ -556,6 +553,7 @@ def montaViewMatrix(front, remover_translacao=False):
 
 	return view
 
+ 
 def montaProjecaoMatrix():
 	znear, zfar = 0.1, 100.0
 	fov     = np.radians(67.0)
@@ -676,71 +674,62 @@ def inicializaRenderizacao():
 
 		front = calculaFront()
 
-		# ---- 1) Objetos normais da cena ----
 		view_normal = montaViewMatrix(front, remover_translacao=False)
-		view_skybox = montaViewMatrix(front, remover_translacao=True) #
-		
-		
-		glDepthFunc(GL_LESS)
-		glUseProgram(Shader_phong)
-
-		glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "view"), 1, GL_TRUE, view_normal)
-		glUniformMatrix4fv(glGetUniformLocation(Shader_phong, "proj"), 1, GL_TRUE, proj)
-		glUniform3fv(glGetUniformLocation(Shader_phong, "viewPos"), 1, Cam_pos) #
-		
-		# Desenhar o Cone Fosco (Vermelho)
-		vao_cone, n_indices_cone = Objetos_cenario["cone"]
-		glBindVertexArray(vao_cone)
-		glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.8, 0.2, 0.2)
-		# Posiciona o cone em x=-2.0
-		transformacaoGenerica(Shader_phong, -2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-		glDrawElements(GL_TRIANGLES, n_indices_cone, GL_UNSIGNED_INT, None)
-
-		# Desenhar a Esfera Fosca (Verde) - só para ter mais um objeto na cena!
-		vao_esfera, n_indices_esfera = Objetos_cenario["esfera"]
-		glBindVertexArray(vao_esfera)
-		glUniform3f(glGetUniformLocation(Shader_phong, "objectColor"), 0.2, 0.8, 0.2)
-		# Posiciona a esfera no fundo em z=-2.0
-		transformacaoGenerica(Shader_phong, 0.0, 0.0, -2.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-		glDrawElements(GL_TRIANGLES, n_indices_esfera, GL_UNSIGNED_INT, None)
-
-		# ---- Objeto Refletor  ----
-		glUseProgram(Shader_reflexao)
-		
-		glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "view"), 1, GL_TRUE, view_normal)
-		glUniformMatrix4fv(glGetUniformLocation(Shader_reflexao, "proj"), 1, GL_TRUE, proj)
-		glUniform3fv(glGetUniformLocation(Shader_reflexao, "viewPos"), 1, Cam_pos)
-
-		# Ativa a textura do cubemap para o shader de reflexão
-		glActiveTexture(GL_TEXTURE0)
-		glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
-		glUniform1i(glGetUniformLocation(Shader_reflexao, "skybox"), 0)
-
-		# Desenhar o Torus Refletor
-		vao_torus, n_indices_torus = Objetos_cenario["torus"]
-		glBindVertexArray(vao_torus)
-		# Posiciona o torus em x=2.0
-		transformacaoGenerica(Shader_reflexao, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
-		glDrawElements(GL_TRIANGLES, n_indices_torus, GL_UNSIGNED_INT, None)
-		
-		# ---- 2) Skybox — sempre por último ----
-		# View sem translação: câmera gira mas o skybox não se afasta
 		view_skybox = montaViewMatrix(front, remover_translacao=True)
 
-		glDepthFunc(GL_LEQUAL)   # deixa z=1.0 passar no depth test
+		# -------------------------------------------------------
+		# 1) Objetos da cena — shader unificado
+		# -------------------------------------------------------
+		glDepthFunc(GL_LESS)
+		glUseProgram(Shader_objeto)
+
+		# Uniforms comuns a todos os objetos
+		glUniformMatrix4fv(glGetUniformLocation(Shader_objeto, "view"), 1, GL_TRUE, view_normal)
+		glUniformMatrix4fv(glGetUniformLocation(Shader_objeto, "proj"), 1, GL_TRUE, proj)
+		glUniform3fv(glGetUniformLocation(Shader_objeto, "viewPos"), 1, Cam_pos)
+
+		# O cubemap fica sempre ligado (unidade 0) — usado apenas no modo reflexivo
+		glActiveTexture(GL_TEXTURE0)
+		glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
+		glUniform1i(glGetUniformLocation(Shader_objeto, "skybox"), 0)
+
+		# --- Cone Fosco (Vermelho) ---
+		vao_cone, n_indices_cone = Objetos_cenario["cone"]
+		glBindVertexArray(vao_cone)
+		glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_FOSCO)
+		glUniform3f(glGetUniformLocation(Shader_objeto, "objectColor"), 0.8, 0.2, 0.2)
+		transformacaoGenerica(Shader_objeto, -2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_cone, GL_UNSIGNED_INT, None)
+
+		# --- Esfera Fosca (Verde) ---
+		vao_esfera, n_indices_esfera = Objetos_cenario["esfera"]
+		glBindVertexArray(vao_esfera)
+		glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_FOSCO)
+		glUniform3f(glGetUniformLocation(Shader_objeto, "objectColor"), 0.2, 0.8, 0.2)
+		transformacaoGenerica(Shader_objeto, 0.0, 0.0, -2.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_esfera, GL_UNSIGNED_INT, None)
+
+		# --- Torus Reflexivo ---
+		vao_torus, n_indices_torus = Objetos_cenario["torus"]
+		glBindVertexArray(vao_torus)
+		glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_REFLEXIVO)
+		# objectColor é ignorado no modo reflexivo, mas pode deixar qualquer valor
+		transformacaoGenerica(Shader_objeto, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+		glDrawElements(GL_TRIANGLES, n_indices_torus, GL_UNSIGNED_INT, None)
+
+		# -------------------------------------------------------
+		# 2) Skybox — sempre por último
+		# -------------------------------------------------------
+		glDepthFunc(GL_LEQUAL)
 		glUseProgram(Shader_skybox)
 
 		glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "view"), 1, GL_TRUE, view_skybox)
 		glUniformMatrix4fv(glGetUniformLocation(Shader_skybox, "proj"), 1, GL_TRUE, proj)
-
-		glActiveTexture(GL_TEXTURE0)
-		glBindTexture(GL_TEXTURE_CUBE_MAP, Textura_cubemap)
 		glUniform1i(glGetUniformLocation(Shader_skybox, "skybox"), 0)
 
 		glBindVertexArray(Vao_skybox)
 		glDrawArrays(GL_TRIANGLES, 0, 36)
 
-		# Restaura para o próximo frame
 		glDepthFunc(GL_LESS)
 
 		glfw.swap_buffers(Window)
