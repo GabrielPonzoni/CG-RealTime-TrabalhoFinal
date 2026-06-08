@@ -49,9 +49,7 @@ import OpenGL.GL.shaders
 import numpy as np
 import ctypes
 import os
-
 import math
-
 from PIL import Image
 
 # -----------------------------------------------------------------------------
@@ -63,7 +61,7 @@ WIDTH, HEIGHT = 800, 600
 
 # Shaders
 Shader_skybox       = None      # shader exclusivo do skybox (sem transform, sem UV)
-Shader_objeto       = None      # shader unificado: fosco (Phong) OU reflexivo, via uniform u_modo
+Shader_objeto       = None      # shader de objetos: fosco (Phong) OU reflexivo, via uniform u_modo
 
 # Modos do shader unificado — passe via glUniform1i(... "u_modo" ...)
 MODO_FOSCO     = 0   # iluminação Phong clássica
@@ -75,7 +73,6 @@ Objetos_cenario     = {}        # Dicionário para guardar (VAO, num_indices) de
 
 # Texturas
 Textura_cubemap     = None
-
 
 Tempo_entre_frames = 0.0
 
@@ -102,6 +99,7 @@ def redimensionaCallback(window, w, h):
 	global WIDTH, HEIGHT
 	WIDTH, HEIGHT = w, h
 
+ 
 def mouse_callback(window, xpos, ypos):
 	global lastX, lastY, primeiro_mouse, Cam_yaw, Cam_pitch
 
@@ -116,6 +114,7 @@ def mouse_callback(window, xpos, ypos):
 	Cam_yaw   += xoffset
 	Cam_pitch  = max(-89.0, min(89.0, Cam_pitch + yoffset))
 
+
 def key_callback(window, key, scancode, action, mode):
 	return
 
@@ -127,7 +126,7 @@ def inicializaOpenGL():
 	global Window
 
 	glfw.init()
-	Window = glfw.create_window(WIDTH, HEIGHT, "Exemplo 5 - Skybox com Cubemap", None, None)
+	Window = glfw.create_window(WIDTH, HEIGHT, "Trabalho Final - Tema 1", None, None)
 	if not Window:
 		glfw.terminate()
 		exit()
