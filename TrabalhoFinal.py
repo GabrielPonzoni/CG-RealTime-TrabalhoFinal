@@ -416,6 +416,7 @@ def inicializaShaders():
 			gl_Position = pos.xyww;
 		}
 	"""
+	
 	fs_skybox = """
 		#version 400
 		in vec3 dir_textura;
@@ -480,33 +481,36 @@ def inicializaShaders():
 			vec3 N = normalize(normalWorld);
 			vec3 V = normalize(viewPos - fragPosWorld);
 
+			vec4 corReflexao = vec4(0.0, 0.0, 0.0, 1.0);
+
 			if (u_modo == 1) {
 				// ---- MODO REFLEXIVO ----
 				// Reflete o vetor de visão pela normal e amostra o cubemap
 				vec3 R = reflect(-V, N);
-				frag_colour = texture(skybox, R);
-
-			} else {
-				// ---- MODO FOSCO (Phong) ----
-				vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0));
-				vec3 sunColor    = vec3(1.0, 1.0, 0.9);
-
-				vec3 R = reflect(-sunLightDir, N);
-
-				float Ka        = 0.3;
-				float Kd        = 0.7;
-				float Ks        = 0.5;
-				float shininess = 32.0;
-
-				vec3  ambient  = Ka * sunColor;
-				float diff     = max(dot(N, sunLightDir), 0.0);
-				vec3  diffuse  = Kd * diff * sunColor;
-				float spec     = pow(max(dot(V, R), 0.0), shininess);
-				vec3  specular = Ks * spec * sunColor;
-
-				vec3 result = (ambient + diffuse) * objectColor + specular;
-				frag_colour = vec4(result, 1.0);
+				//frag_colour = texture(skybox, R);
+				corReflexao = texture(skybox, R);
 			}
+
+			// ---- MODO FOSCO (Phong) ----
+			vec3 sunLightDir = normalize(vec3(-1.0, 1.5, -2.0));
+			vec3 sunColor    = vec3(1.0, 1.0, 0.9);
+
+			vec3 R = reflect(-sunLightDir, N);
+
+			float Ka        = 0.3;
+			float Kd        = 0.7;
+			float Ks        = 0.5;
+			float shininess = 32.0;
+
+			vec3  ambient  = Ka * sunColor;
+			float diff     = max(dot(N, sunLightDir), 0.0);
+			vec3  diffuse  = Kd * diff * sunColor;
+			float spec     = pow(max(dot(V, R), 0.0), shininess);
+			vec3  specular = Ks * spec * sunColor;
+
+			vec3 result = (ambient + diffuse) * objectColor + specular;
+			result = min(result + corReflexao.rgb, vec3(1.0));
+			frag_colour = vec4(result, 1.0);
 		}
 	"""
 
@@ -712,7 +716,7 @@ def inicializaRenderizacao():
 		vao_torus, n_indices_torus = Objetos_cenario["torus"]
 		glBindVertexArray(vao_torus)
 		glUniform1i(glGetUniformLocation(Shader_objeto, "u_modo"), MODO_REFLEXIVO)
-		# objectColor é ignorado no modo reflexivo, mas pode deixar qualquer valor
+		glUniform3f(glGetUniformLocation(Shader_objeto, "objectColor"), 0., 0., 0.)
 		transformacaoGenerica(Shader_objeto, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
 		glDrawElements(GL_TRIANGLES, n_indices_torus, GL_UNSIGNED_INT, None)
 
@@ -752,6 +756,7 @@ def main():
 	inicializaShaders()
 	carregaCubemap(PASTA_SKYBOX)
 	inicializaRenderizacao()
+
 
 if __name__ == "__main__":
 	main()
